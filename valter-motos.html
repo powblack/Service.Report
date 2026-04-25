@@ -2552,19 +2552,17 @@ function montarTextoRelatorio(lista, titulo) {
   const formas  = { pix:0, debito:0, credito:0, dinheiro:0 };
   lista.filter(x => x.status==='pago').forEach(x => { if (formas[x.pagamento]!==undefined) formas[x.pagamento] += Number(x.valor); });
 
-  let txt = `🏍️ *VALTER MOTOS*\n`;
-  txt += `📋 *${titulo}*\n`;
-  txt += `📅 ${new Date().toLocaleDateString('pt-BR')}\n\n`;
+  let txt = `*${titulo}*\n`;
   txt += `━━━━━━━━━━━━━━━━━━━━\n`;
-  txt += `💰 Total Faturado: *${fmtBRL(total)}*\n`;
-  txt += `✅ Recebido: *${fmtBRL(pagos)}*\n`;
-  txt += `⏳ A Receber: *${fmtBRL(pend)}*\n`;
-  txt += `🔧 Serviços: *${lista.length}*\n\n`;
+  txt += `Total Faturado: *${fmtBRL(total)}*\n`;
+  txt += `Recebido: *${fmtBRL(pagos)}*\n`;
+  txt += `A Receber: *${fmtBRL(pend)}*\n`;
+  txt += `Serviços: *${lista.length}*\n\n`;
   txt += `━━━━ Formas de Pagamento ━━━━\n`;
-  txt += `🔵 Pix: ${fmtBRL(formas.pix)}\n`;
-  txt += `💳 Débito: ${fmtBRL(formas.debito)}\n`;
-  txt += `💳 Crédito: ${fmtBRL(formas.credito)}\n`;
-  txt += `💵 Dinheiro: ${fmtBRL(formas.dinheiro)}\n\n`;
+  txt += `Pix: ${fmtBRL(formas.pix)}\n`;
+  txt += `Débito: ${fmtBRL(formas.debito)}\n`;
+  txt += `Crédito: ${fmtBRL(formas.credito)}\n`;
+  txt += `Dinheiro: ${fmtBRL(formas.dinheiro)}\n\n`;
   txt += `━━━━━━ Detalhes ━━━━━━\n`;
   lista.slice(0, 20).forEach(s => {
     txt += `• ${fmtDT(s.entrada)} | ${s.moto} | ${fmtBRL(s.valor)} | ${s.status==='pago'?'✅':'⏳'}\n`;
@@ -2580,7 +2578,7 @@ function enviarWhatsApp() {
   if (inicio) lista = lista.filter(s => s.entrada >= inicio);
   if (fim)    lista = lista.filter(s => s.entrada <= fim + 'T23:59');
   lista.sort((a,b) => new Date(b.entrada)-new Date(a.entrada));
-
+  
   const txt = montarTextoRelatorio(lista, 'Relatório de Serviços');
   window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
 }
