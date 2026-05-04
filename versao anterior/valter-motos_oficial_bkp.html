@@ -69,10 +69,6 @@
   .pdf-botao { background-color: #dc2626 !important; }
   .pdf-botao:hover { transform: scale(1.2); transition: 0.5s ease; background-color: #dc2626 !important; }
   .print-botao:hover { transform: scale(1.3); transition: 0.5s ease; background-color: rgb(25, 239, 25); border-radius: 7px; }
-  .backup-botao { background-color: #16a34a !important; border-radius: 7px; }
-  .backup-botao:hover { transform: scale(1.2); transition: 0.5s ease; background-color: #15803d !important; }
-  .restore-botao { background-color: #7c3aed !important; border-radius: 7px; }
-  .restore-botao:hover { transform: scale(1.2); transition: 0.5s ease; background-color: #6d28d9 !important; }
 
   /* ===== NAVEGAÇÃO ===== */
   nav {
@@ -1068,19 +1064,6 @@
     <div>Sistema de Relatórios</div>
   </div>
   <div class="header-actions-group">
-    <div class="header-actions backup-botao">
-      <button class="btn btn-outline btn-sm" onclick="fazerBackup()" title="Exportar todos os dados como arquivo JSON">
-        <span class="material-icons">backup</span>
-        Backup
-      </button>
-    </div>
-    <div class="header-actions restore-botao">
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('input-restore').click()" title="Restaurar dados de um arquivo de backup">
-        <span class="material-icons">restore</span>
-        Restaurar
-      </button>
-      <input type="file" id="input-restore" accept=".json" style="display:none" onchange="restaurarBackup(event)">
-    </div>
     <div class="header-actions print-botao">
       <button class="btn btn-outline btn-sm" onclick="abrirModalImpressao()">
         <span class="material-icons">print</span>
@@ -3691,103 +3674,6 @@ document.getElementById('overlay-confirma-moto').addEventListener('click', funct
   if (e.target === this) fecharConfirmaMoto();
 });
 
-
-  // ===== BACKUP E RESTAURAÇÃO =====
-
-  function fazerBackup() {
-    try {
-      // Coleta todas as chaves do localStorage que pertencem ao sistema
-      const chaves = Object.keys(localStorage);
-      if (chaves.length === 0) {
-        toast('NENHUM DADO ENCONTRADO PARA BACKUP.', 'error');
-        return;
-      }
-
-      const dados = {};
-      chaves.forEach(chave => {
-        try {
-          dados[chave] = JSON.parse(localStorage.getItem(chave));
-        } catch {
-          dados[chave] = localStorage.getItem(chave);
-        }
-      });
-
-      const backup = {
-        versao: '1.0',
-        sistema: 'Valter Motos - Sistema de Relatórios',
-        dataBackup: new Date().toISOString(),
-        totalRegistros: {
-          servicos: (dados.servicos || []).length,
-          motos: (dados.motos || []).length,
-        },
-        dados,
-      };
-
-      const json = JSON.stringify(backup, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
-      const url  = URL.createObjectURL(blob);
-
-      const data = new Date();
-      const stamp = `${data.getFullYear()}${String(data.getMonth()+1).padStart(2,'0')}${String(data.getDate()).padStart(2,'0')}_${String(data.getHours()).padStart(2,'0')}${String(data.getMinutes()).padStart(2,'0')}`;
-      const nomeArquivo = `backup_valter_motos_${stamp}.json`;
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = nomeArquivo;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      const total = backup.totalRegistros.servicos + backup.totalRegistros.motos;
-      toast(`✅ BACKUP REALIZADO! ${total} REGISTRO(S) EXPORTADO(S).`, 'success');
-    } catch (e) {
-      console.error('Erro no backup:', e);
-      toast('ERRO AO GERAR BACKUP. TENTE NOVAMENTE.', 'error');
-    }
-  }
-
-  function restaurarBackup(event) {
-    const arquivo = event.target.files[0];
-    if (!arquivo) return;
-
-    // Limpa o input para permitir selecionar o mesmo arquivo novamente
-    event.target.value = '';
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const backup = JSON.parse(e.target.result);
-
-        if (!backup.dados) {
-          toast('ARQUIVO INVÁLIDO. NÃO É UM BACKUP VÁLIDO.', 'error');
-          return;
-        }
-
-        const confirmMsg = `RESTAURAR BACKUP?\n\nData do backup: ${backup.dataBackup ? new Date(backup.dataBackup).toLocaleString('pt-BR') : 'desconhecida'}\nServiços: ${backup.totalRegistros?.servicos ?? '?'}\nMotos: ${backup.totalRegistros?.motos ?? '?'}\n\n⚠️ ATENÇÃO: Os dados atuais serão SUBSTITUÍDOS pelos dados do backup.\n\nDeseja continuar?`;
-
-        if (!confirm(confirmMsg)) return;
-
-        // Restaura todas as chaves salvas
-        Object.entries(backup.dados).forEach(([chave, valor]) => {
-          try {
-            localStorage.setItem(chave, JSON.stringify(valor));
-          } catch {
-            localStorage.setItem(chave, valor);
-          }
-        });
-
-        toast('✅ BACKUP RESTAURADO COM SUCESSO! RECARREGANDO...', 'success');
-
-        setTimeout(() => location.reload(), 1500);
-      } catch (err) {
-        console.error('Erro ao restaurar:', err);
-        toast('ERRO AO LER ARQUIVO. VERIFIQUE SE É UM BACKUP VÁLIDO.', 'error');
-      }
-    };
-
-    reader.readAsText(arquivo);
-  }
 
   // Configura mês/ano atual no fechamento
 (function init() {
